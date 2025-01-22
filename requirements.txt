@@ -1,0 +1,7 @@
+transformers==4.30.2
+torch==2.0.0
+textstat==0.7.3
+spacy==3.5.0
+# Additional if needed:
+# nltk==3.8
+# python-wordpress-xmlrpc (if you're using WordPress)
