@@ -14,6 +14,34 @@ class OaiContentGenerator:
         self.model_name = model_name
         SetOaiKey()
 
+    def GenerateKeywords(self, topic: str = "fintech startups", max_tokens = 700, temperature = 0.7) -> str:
+        '''Generates a list of keywords based on the topic'''
+
+        system = (
+            f"You are a digital marketing specialist for a growing FinTech startup."
+            f"You are preparing a list of keywords for the company's website. "
+            f"Include a mix of short-tail and long-tail keywords."
+        )
+
+
+        prompt = (
+            f"Generate a list of keywords related to '{topic}' for a FinTech audience. "
+            f"Include a mix of short-tail and long-tail keywords that are relevant to the company's products and services. "
+            f"Ensure the keywords are SEO-friendly and have a professional yet approachable tone."
+        )
+
+        response = openai.ChatCompletion.create(
+            model=self.model_name,
+            messages=[{"role": "system", "content": system},
+                      {"role": "user", "content": prompt}],
+            max_tokens=max_tokens,
+            temperature=temperature
+        )
+
+        # Extract the message from the API response
+        generated_keywords = response["choices"][0]["message"]["content"]
+        return generated_keywords
+
     def GenerateBlogPost(self, keyword: str, max_tokens = 700, temperature = 0.7) -> str:
         '''Generates a blog post based on the keyword'''
 
