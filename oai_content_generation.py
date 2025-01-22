@@ -68,3 +68,29 @@ class OaiContentGenerator:
         # Extract the message from the API response
         generated_text = response["choices"][0]["message"]["content"]
         return generated_text
+    
+    def FixBlogPost(self, blog_text: str, instructions: str, max_tokens = 700, temperature = 0.7) -> str:
+        '''Fixes a blog post based on the given instructions'''
+        system = (
+            f"You are a helpful SEO copywriter whose responsability is to fix problems in blog posts written by other writers at your company."
+            f"You write well-structured, SEO-friendly articles. "
+            f"Include headings (H2, H3) and short paragraphs."
+        )
+
+        prompt = (
+            f"Fix the following blog post by following the instructions below: \n\n"
+            f"Instructions: {instructions}\n\n"
+            f"Blog Post:\n{blog_text}"
+        )
+
+        response = openai.ChatCompletion.create(
+            model=self.model_name,
+            messages=[{"role": "system", "content": system},
+                      {"role": "user", "content": prompt}],
+            max_tokens=max_tokens,
+            temperature=temperature
+        )
+
+        # Extract the message from the API response
+        fixed_text = response["choices"][0]["message"]["content"]
+        return fixed_text

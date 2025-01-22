@@ -18,7 +18,7 @@ if __name__ == "__main__":
     #     generated_post = generator.generate_blog_post(keyword)
 
     # 2. SEO Optimization
-    seo = SEOOptimizer(primary_keyword="FinTech", recommended_keyword_density=0.015)
+    seo = SEOOptimizer(keyword="FinTech", recommended_keyword_density=[0.01, 0.02])
     optimized_post = seo.optimize_blog(generated_post)
 
     print("Final Blog Post:\n", optimized_post)

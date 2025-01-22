@@ -6,8 +6,7 @@ from collections import Counter
 import nltk
 from nltk.corpus import stopwords
 nltk.download('stopwords')
-
-from 
+from oai_content_generation import OaiContentGenerator
 
 class SEOOptimizer:
     def __init__(self, keyword: str, recommended_keyword_density=[0.01,0.02]):
@@ -38,7 +37,7 @@ class SEOOptimizer:
         count_keyword = sum(1 for w in words if w == self.keyword)
         return count_keyword / total_words
 
-    def optimize_blog(self, blog_text: str) -> str:
+    def optimize_blog(self, blog_text: str, use_AI = True) -> str:
         """
         Simple optimizer that tries to adjust keyword density
         by inserting the primary keyword if below recommended density.
@@ -48,27 +47,40 @@ class SEOOptimizer:
         required_count_min = math.floor(total_words * self.recommended_keyword_density_min)
         required_count_max = math.floor(total_words * self.recommended_keyword_density_max)
 
-        # Check if the keyword is already present
-
-
         # Insert the keyword if density is too low
         if (current_density < self.recommended_keyword_density_min) and (required_count_min> 0):
             shortfall = required_count_min - math.floor(total_words * current_density)
-            # Insert the keyword randomly
-            for _ in range(shortfall):
-                blog_text += f" {self.keyword}"
+            
+            if not use_AI:
+                # Insert the keyword randomly
+                for _ in range(shortfall):
+                    blog_text += f" {self.keyword}"
+            else:
+                # Insert the keyword with ai
+                generator = OaiContentGenerator(model_name="EleutherAI/gpt-neo-1.3B", max_length=500)
+                instructions = f"The keyword density is too low. Please add the keyword {self.keyword} approximately {shortfall} times to reach an optimal (for SEO) keyword frequency."
+                fixed_post = generator.FixBlogPost(blog_text, instructions)
+                blog_text = fixed_post
 
         # Remove extra keywords if density is too high
         elif (current_density > self.recommended_keyword_density_max) and (required_count_max > 0):
             excess = math.floor(total_words * current_density) - required_count_max
-            # Remove the keyword randomly
-            words = re.findall(r"\w+", blog_text.lower())
-            keyword_indices = [i for i, w in enumerate(words) if w == self.keyword]
-            for _ in range(excess):
-                if keyword_indices:
-                    index = keyword_indices.pop()
-                    words[index] = ""
-            blog_text = " ".join(words)
+            
+            if not use_AI:
+                # Remove the keyword randomly
+                words = re.findall(r"\w+", blog_text.lower())
+                keyword_indices = [i for i, w in enumerate(words) if w == self.keyword]
+                for _ in range(excess):
+                    if keyword_indices:
+                        index = keyword_indices.pop()
+                        words[index] = ""
+                blog_text = " ".join(words)
+            else:
+                # Remove the keyword with ai
+                generator = OaiContentGenerator(model_name="EleutherAI/gpt-neo-1.3B", max_length=500)
+                instructions = f"The keyword density is too high. Please remove the keyword {self.keyword} approximately {excess} times to reach an optimal (for SEO) keyword frequency."
+                fixed_post = generator.FixBlogPost(blog_text, instructions)
+                blog_text = fixed_post
 
         return blog_text
 
