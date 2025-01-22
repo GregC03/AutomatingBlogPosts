@@ -1,7 +1,9 @@
 transformers==4.30.2
+openai==0.27.0
 torch==2.0.0
 textstat==0.7.3
 spacy==3.5.0
+python-dotenv==1.0.0
 # Additional if needed:
-# nltk==3.8
-# python-wordpress-xmlrpc (if you're using WordPress)
+nltk==3.8
+#python-wordpress-xmlrpc #(if you're using WordPress)
