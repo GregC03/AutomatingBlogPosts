@@ -14,7 +14,7 @@ class OaiContentGenerator:
         self.model_name = model_name
         _SetOaiKey()
 
-    def GenerateKeywords(self, topic: str = "fintech startups", max_tokens = 100, temperature = 0.7) -> str:
+    def GenerateKeywords(self, topic: str = "fintech startups", max_tokens = 50, temperature = 0.7) -> str:
         '''Generates a list of keywords based on the topic'''
 
         system = (
@@ -41,7 +41,7 @@ class OaiContentGenerator:
             messages=[{"role": "system", "content": system},
                       {"role": "user", "content": prompt},
                       {"role": "user", "content": "Make sure that the response only contains the Keywords separated by commas, like this: 'keyword1, keyword2, keyword3, ..., keywordN'."}],
-            max_tokens=max_tokens,
+            max_completion_tokens=max_tokens, #max_completion_tokens is better
             temperature=temperature
         )
 
@@ -53,7 +53,7 @@ class OaiContentGenerator:
         except ValueError:
             return "The response from the AI was not in the expected format. Please try again."
         
-    def GenerateKeywordsFromSearchResults(self, search_results: list, topic: str, max_tokens = 100, temperature = 0.5) -> str:
+    def GenerateKeywordsFromSearchResults(self, search_results: list, topic: str, max_tokens = 50, temperature = 0.5) -> str:
         '''Generates a list of keywords based on the provided search results'''
 
         system = (
@@ -79,7 +79,7 @@ class OaiContentGenerator:
             messages=[{"role": "system", "content": system},
                       {"role": "user", "content": prompt},
                       {"role": "user", "content": "Make sure that the response only contains the Keywords separated by commas, like this: 'keyword1, keyword2, keyword3, ..., keywordN'."}],
-            max_tokens=max_tokens,
+            max_completion_tokens=max_tokens,
             temperature=temperature
         )
 
@@ -91,7 +91,7 @@ class OaiContentGenerator:
         except ValueError:
             return "The response from the AI was not in the expected format. Please try again."
 
-    def GenerateBlogPost(self, keyword: str, max_tokens = 500, temperature = 0.5) -> str: # set token to 2000
+    def GenerateBlogPost(self, keyword: str, max_tokens = 2000, temperature = 0.5) -> str: # set token to 2000
         '''Generates a blog post based on the keyword'''
 
         system = (
@@ -120,7 +120,7 @@ class OaiContentGenerator:
             model=self.model_name,
             messages=[{"role": "system", "content": system},
                       {"role": "user", "content": prompt}],
-            max_tokens=max_tokens,
+            max_completion_tokens=max_tokens,
             temperature=temperature
         )
 
@@ -128,7 +128,7 @@ class OaiContentGenerator:
         generated_text = response["choices"][0]["message"]["content"]
         return generated_text
     
-    def GeneratePostTitle(self, blog_text: str, keyword: str, max_tokens = 50, temperature = 0.5) -> str:
+    def GeneratePostTitle(self, blog_text: str, keyword: str, max_tokens = 80, temperature = 0.5) -> str:
         '''Generates a title for a blog post based on the content'''
 
         system = (
@@ -152,7 +152,7 @@ class OaiContentGenerator:
             model=self.model_name,
             messages=[{"role": "system", "content": system},
                       {"role": "user", "content": prompt}],
-            max_tokens=max_tokens,
+            max_completion_tokens=max_tokens,
             temperature=temperature
         )
 
@@ -160,7 +160,7 @@ class OaiContentGenerator:
         generated_title = response["choices"][0]["message"]["content"]
         return generated_title
 
-    def GeneratePostMetaDescription(self, blog_text: str, blog_title: str, keyword: str, max_tokens = 160, temperature = 0.5) -> str:
+    def GeneratePostMetaDescription(self, blog_text: str, blog_title: str, keyword: str, max_tokens = 220, temperature = 0.5) -> str:
         '''Generates a meta description for a blog post based on the content'''
 
         system = (
@@ -185,7 +185,7 @@ class OaiContentGenerator:
             model=self.model_name,
             messages=[{"role": "system", "content": system},
                       {"role": "user", "content": prompt}],
-            max_tokens=max_tokens,
+            max_completion_tokens=max_tokens,
             temperature=temperature
         )
         
@@ -201,7 +201,7 @@ class OaiSeoSpecialist:
         self.model_name = model_name
         _SetOaiKey()
 
-    def FixBlogPost(self, blog_text: str, instructions: str, max_tokens = 700, temperature = 0.4) -> str:
+    def FixBlogPost(self, blog_text: str, instructions: str, max_tokens = 2400, temperature = 0.4) -> str: # set tokens to 2000
         '''Fixes a blog post based on the given instructions'''
     
         system = (
@@ -215,7 +215,7 @@ class OaiSeoSpecialist:
             f"Revise the following blog post according to these specific instructions:\n\n"
             f"INSTRUCTIONS:\n{instructions}\n\n"
             f"ORIGINAL POST:\n{blog_text}\n\n"
-            f"Please ensure the revised version:\n"
+            f"Please ensure that the revised version:\n"
             f"1. Follows all provided instructions exactly\n"
             f"2. Does not add anything other than the revised content and does not include the instructions in the revised content."
             f"3. Does not include things such as 'Revised Content:' or 'Revised Post:' at the beginning of the revised content."
@@ -226,7 +226,7 @@ class OaiSeoSpecialist:
             model=self.model_name,
             messages=[{"role": "system", "content": system},
                       {"role": "user", "content": prompt}],
-            max_tokens=max_tokens,
+            max_completion_tokens=max_tokens,
             temperature=temperature
         )
 
@@ -254,24 +254,9 @@ class OaiSeoSpecialist:
             model=self.model_name,
             messages=[{"role": "system", "content": system},
                       {"role": "user", "content": prompt}],
-            max_tokens=max_tokens,
+            max_completion_tokens=max_tokens,
             temperature=temperature
         )
 
         improved_text = response["choices"][0]["message"]["content"]
         return improved_text
-    
-'''prompt = (
-            f"Write a comprehensive blog post about '{keyword}' for a FinTech audience. The post should include:\n"
-            f"1. An attention-grabbing title with the main keyword\n"
-            f"2. A compelling meta description (150-160 characters)\n"
-            f"3. An engaging introduction that hooks the reader\n"
-            f"4. 3-5 main sections with H2 headings\n"
-            f"5. Relevant subsections with H3 headings where appropriate\n"
-            f"6. A clear conclusion summarizing key points\n"
-            f"7. A practical bullet list of actionable takeaways\n"
-            f"8. A strong call-to-action\n\n"
-            f"Maintain natural keyword density (1-2%), use transition words for flow, "
-            f"and keep paragraphs under 3-4 sentences for readability. "
-            f"Balance professional expertise with an approachable, conversational tone."
-        )'''
