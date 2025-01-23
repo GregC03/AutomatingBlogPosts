@@ -216,10 +216,13 @@ class OaiSeoSpecialist:
             f"INSTRUCTIONS:\n{instructions}\n\n"
             f"ORIGINAL POST:\n{blog_text}\n\n"
             f"Please ensure that the revised version:\n"
-            f"1. Follows all provided instructions exactly\n"
-            f"2. Does not add anything other than the revised content and does not include the instructions in the revised content."
+            f"1. Follows all provided instructions\n"
+            f"2. Maintains the original message and tone\n"
+            f"3. Enhances readability and SEO optimization\n"
+            f"4. Includes proper heading hierarchy (H1, H2, and H3) and keyword placement\n"
+            f"2. Does not include the instructions in the revised content."
             f"3. Does not include things such as 'Revised Content:' or 'Revised Post:' at the beginning of the revised content."
-            f"Again, please ensure that you follow the instructions exactly"
+            f"Again, you must ensure that you follow the instructions provided at the beginning and revise the content accordingly."
         )
 
         response = openai.ChatCompletion.create(

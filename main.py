@@ -3,6 +3,8 @@ from keyword_extraction import GoogleScraper
 from seo_optimization import SEOAnalyzer
 
 import random
+import pandas as pd
+import openpyxl
 
 def main(topic: str, input_keywords: list = None):
     ''' Main function to generate SEO-optimized blog posts on a given topic'''
@@ -44,9 +46,9 @@ def main(topic: str, input_keywords: list = None):
         ## Combine the keywords
         final_keywords = list(set(ai_keywords1 + ai_keywords2))
         random.shuffle(final_keywords)
-        if len(final_keywords) > 700//30:
-        ##    final_keywords = final_keywords[:700//30]
-            final_keywords = final_keywords[:10]
+        #if len(final_keywords) > 700//30:
+        #    final_keywords = final_keywords[:700//30]
+        final_keywords = final_keywords[:5]
 
     # 1b. If input_keywords are provided, use them directly
     else:
@@ -73,7 +75,7 @@ def main(topic: str, input_keywords: list = None):
 
     ## Initialize the SEO Analyzer and SEO Specialist
     analyzer = SEOAnalyzer()
-    fixer = OaiSeoSpecialist()
+    fixer = OaiSeoSpecialist(model_name="gpt-3.5-turbo")
 
     ## Optimize the generated blog posts
     seo_optimized_posts = []
@@ -85,11 +87,27 @@ def main(topic: str, input_keywords: list = None):
         seo_optimized_posts.append(improved_post)
 
 
-    ## Print the final output safely
-    if seo_optimized_posts:
-        print("Final Blog Post:\n", seo_optimized_posts[0])
-    else:
+    ## Warn if no blog posts were generated successfully
+    if not seo_optimized_posts:
         print("No blog posts were generated successfully.")
+
+    # Create a DataFrame with the blog posts
+    df = pd.DataFrame({
+        'blog_post': seo_optimized_posts,
+        'keyword': final_keywords
+    })
+
+    # Save to CSV and Excel
+    try:
+        df.to_csv('./automated_blog_posts.csv', index=False, sep=';')
+        df.to_excel('./automated_blog_posts.xlsx', index=False, engine='openpyxl')
+        print("Files saved successfully.")
+    except PermissionError:
+        print("Error: Permission denied. Please close the files if they are open.")
+    except Exception as e:
+        print(f"Error saving files: {str(e)}")
+
+    return seo_optimized_posts
 
 if __name__ == "__main__":
    main(topic = "Innovative payments solutions")
