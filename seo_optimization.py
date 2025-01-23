@@ -81,9 +81,9 @@ class SEOAnalyzer:
         paragraphs = content.split('\n\n')
         subheadings = [line for line in content.split('\n') if line.strip().startswith('#')]
         if len(paragraphs) < 3:
-            return f"Paragraph Structure Check: Less than 3 paragraphs found. Task: Break content into more paragraphs.\n"
+            return "Paragraph Structure Check: Less than 3 paragraphs found. Task: Break content into more paragraphs.\n"
         if len(subheadings) < 2:
-            return f"Subheading Check: Less than 2 subheadings found. Task: Add more subheadings to break the content.\n"
+            return "Subheading Check: Less than 2 subheadings found. Task: Add more subheadings to break the content.\n"
         return "Paragraph and Subheading Structure Check: Proper structure. No changes needed.\n"
     
     def check_sentiment(self, content):
