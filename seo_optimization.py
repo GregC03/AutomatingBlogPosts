@@ -108,7 +108,7 @@ class SEOAnalyzer:
         final_report += self.check_readability(content)
         final_report += self.check_sentence_length(content)
         final_report += self.check_content_duplication(content, existing_contents)
-        final_report += self.check_keyword_density(content, target_keywords[0])
+        final_report += self.check_keyword_density(content, target_keywords)
         final_report += self.check_paragraphs_and_subheadings(content)
         final_report += self.check_sentiment(content)
         return final_report

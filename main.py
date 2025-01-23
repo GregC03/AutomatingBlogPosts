@@ -8,11 +8,11 @@ import openpyxl
 
 def main(topic: str, input_keywords: list = None):
     ''' Main function to generate SEO-optimized blog posts on a given topic'''
-
+    model = "gpt-4o-mini"
     # 1a. If input_keywords are not provided, generate keywords using AI and web scraping
     if input_keywords is None:
         
-        generator = OaiContentGenerator(model_name="gpt-3.5-turbo")
+        generator = OaiContentGenerator(model_name=model)
         keywords = ["Innovative payments", "payment solutions", "digital payments", "payment technology", "payment innovation"]
 
         ## AI Keywords Generation from scratch
@@ -46,9 +46,10 @@ def main(topic: str, input_keywords: list = None):
         ## Combine the keywords
         final_keywords = list(set(ai_keywords1 + ai_keywords2))
         random.shuffle(final_keywords)
+
         #if len(final_keywords) > 700//30:
         #    final_keywords = final_keywords[:700//30]
-        final_keywords = final_keywords[:5]
+        final_keywords = final_keywords[:4]
 
     # 1b. If input_keywords are provided, use them directly
     else:
@@ -75,7 +76,7 @@ def main(topic: str, input_keywords: list = None):
 
     ## Initialize the SEO Analyzer and SEO Specialist
     analyzer = SEOAnalyzer()
-    fixer = OaiSeoSpecialist(model_name="gpt-3.5-turbo")
+    fixer = OaiSeoSpecialist(model_name=model)
 
     ## Optimize the generated blog posts
     seo_optimized_posts = []
