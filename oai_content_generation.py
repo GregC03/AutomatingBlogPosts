@@ -14,57 +14,64 @@ class OaiContentGenerator:
         self.model_name = model_name
         _SetOaiKey()
 
-    def GenerateKeywordsFromSearchResults(self, search_results: list, topic: str, max_tokens = 100, temperature = 0.5) -> str:
-        '''Generates a list of keywords based on the search results'''
-
-        system = (
-            f"You are a digital marketing specialist for a growing FinTech startup."
-            f"You are preparing a list of relevant keywords for blog posts regarding {topic} to bu published on the company's website . "
-            f"You will be given a list of the most common words appearing in the first n links in google search realted to the topic ({topic})"
-            f"Using the information on the most common words in the search results and your knowlede, you need to generate a list of relevant keywords for the company's website. "
-            f"Include a mix of short-tail and long-tail keywords."
-        )
-
-        prompt = (
-            f"Generate a list of keywords based on the search results for a FinTech audience. "
-            f"The keywords with their frequency in the search results are: {search_results}."
-            f"Include a mix of short-tail and long-tail keywords that are relevant to the company's products and services. "
-            f"Ensure the keywords are SEO-friendly and have a professional yet approachable tone."
-            f"The response must only contains the Keywords separated by commas, like this: 'keyword1, keyword2, keyword3, ..., keywordN'."
-        )
-
-        response = openai.ChatCompletion.create(
-            model=self.model_name,
-            messages=[{"role": "system", "content": system},
-                      {"role": "user", "content": prompt},
-                      {"role": "user", "content": "Make sure that the response only contains the Keywords separated by commas, like this: 'keyword1, keyword2, keyword3, ..., keywordN'."}],
-            max_tokens=max_tokens,
-            temperature=temperature
-        )
-
-        # Extract the message from the API response
-        generated_keywords = response["choices"][0]["message"]["content"]
-        try:
-            output = generated_keywords.split(",")
-            return output
-        except ValueError:
-            return "The response from the AI was not in the expected format. Please try again."
-
     def GenerateKeywords(self, topic: str = "fintech startups", max_tokens = 100, temperature = 0.7) -> str:
         '''Generates a list of keywords based on the topic'''
 
         system = (
-            f"You are a digital marketing specialist for a growing FinTech startup."
-            f"You are preparing a list of keywords for the company's website. "
-            f"Include a mix of short-tail and long-tail keywords."
+            "You are a senior SEO strategist specializing in FinTech content marketing. "
+            "Your expertise lies in identifying high-impact keywords that drive organic traffic. "
+            "You understand both technical SEO principles and FinTech industry trends. "
+            "Your goal is to create a comprehensive keyword strategy that balances search volume, "
+            "competition level, and user intent."
         )
 
+        prompt = (
+            f"Generate a strategic keyword list for '{topic}' targeting the FinTech sector. "
+            f"Include:\n"
+            f"1. Primary short-tail keywords with high search volume\n"
+            f"2. Long-tail keywords that indicate purchase intent\n"
+            f"3. Industry-specific technical terms\n"
+            f"4. Question-based keywords reflecting user queries\n"
+            f"Ensure all keywords align with SEO best practices and FinTech industry standards. "
+            f"Format the response as comma-separated values only: 'keyword1, keyword2, keyword3, ..., keywordN'"
+        )
+
+        response = openai.ChatCompletion.create(
+            model=self.model_name,
+            messages=[{"role": "system", "content": system},
+                      {"role": "user", "content": prompt},
+                      {"role": "user", "content": "Make sure that the response only contains the Keywords separated by commas, like this: 'keyword1, keyword2, keyword3, ..., keywordN'."}],
+            max_tokens=max_tokens,
+            temperature=temperature
+        )
+
+        # Extract the message from the API response
+        generated_keywords = response["choices"][0]["message"]["content"]
+        try:
+            output = generated_keywords.split(",")
+            return output
+        except ValueError:
+            return "The response from the AI was not in the expected format. Please try again."
+        
+    def GenerateKeywordsFromSearchResults(self, search_results: list, topic: str, max_tokens = 100, temperature = 0.5) -> str:
+        '''Generates a list of keywords based on the provided search results'''
+
+        system = (
+            "You are a senior SEO and keyword strategist specializing in FinTech marketing. "
+            "Your expertise lies in analyzing search data and identifying high-value keyword opportunities. "
+            "Your task is to extract meaningful keyword patterns from search result data and combine them "
+            f"with industry knowledge to create targeted keyword lists for '{topic}'. "
+            "Focus on keywords that balance search volume, competition, and user intent."
+        )
 
         prompt = (
-            f"Generate a list of keywords related to '{topic}' for a FinTech audience. "
-            f"Include a mix of short-tail and long-tail keywords that are relevant to the company's products and services. "
-            f"Ensure the keywords are SEO-friendly and have a professional yet approachable tone."
-            f"The response must only contains the Keywords separated by commas, like this: 'keyword1, keyword2, keyword3, ..., keywordN'."
+            f"Based on these search result frequency data: {search_results}\n"
+            f"Generate a strategic keyword list for '{topic}' that:\n"
+            "1. Leverages the most frequent terms from search results\n"
+            "2. Includes both short-tail (1-2 words) and long-tail (3+ words) keywords\n"
+            "3. Focuses on terms with clear commercial or informational intent\n"
+            "4. Incorporates FinTech industry terminology\n\n"
+            "Format output as comma-separated values ONLY: 'keyword1, keyword2, keyword3'"
         )
 
         response = openai.ChatCompletion.create(
@@ -84,19 +91,29 @@ class OaiContentGenerator:
         except ValueError:
             return "The response from the AI was not in the expected format. Please try again."
 
-    def GenerateBlogPost(self, keyword: str, max_tokens = 500, temperature = 0.5) -> str:
+    def GenerateBlogPost(self, keyword: str, max_tokens = 500, temperature = 0.5) -> str: # set token to 2000
         '''Generates a blog post based on the keyword'''
 
         system = (
-            f"You are a helpful SEO copywriter for a blooming FinTech startup."
-            f"You write well-structured, SEO-friendly articles. "
-            f"Include headings (H2, H3) and short paragraphs."
+            "You are an expert SEO copywriter specializing in FinTech content. "
+            "You excel at creating engaging, well-researched articles that rank highly in search engines. "
+            "Your writing style combines technical accuracy with clear explanations for both beginners and experts. "
+            "You follow modern SEO best practices, including proper heading hierarchy, optimal keyword placement, "
+            "and reader-friendly formatting with short paragraphs and bullet points."
         )
 
         prompt = (
-            f"Write a long blog post about '{keyword}' for a FinTech audience to be published in the company's website. "
-            F"Structure the article with an Introduction, 3-5 Subheadings, a short Conclusion, and a bulleted list of actionable tips. "
-            f"Keep language SEO-friendly with a keyword density of around 1-2%, and a professional yet approachable tone."
+            f"Write a comprehensive blog post about '{keyword}' for a FinTech audience. The post should include:\n"
+            f"1. An engaging introduction that hooks the reader\n"
+            f"2. 3-5 main sections with H2 headings\n"
+            f"3. Relevant subsections with H3 headings where appropriate\n"
+            f"4. A clear conclusion summarizing key points\n"
+            f"5. A practical bullet list of actionable takeaways\n"
+            f"6. A strong call-to-action\n\n"
+            f"Maintain natural keyword density (1-2%), use transition words for flow, "
+            f"and keep paragraphs under 3-4 sentences for readability. "
+            f"Balance professional expertise with an approachable, conversational tone."
+            f"The post must not include the title nor the meta description,."
         )
 
         response = openai.ChatCompletion.create(
@@ -111,14 +128,120 @@ class OaiContentGenerator:
         generated_text = response["choices"][0]["message"]["content"]
         return generated_text
     
+    def GeneratePostTitle(self, blog_text: str, keyword: str, max_tokens = 50, temperature = 0.5) -> str:
+        '''Generates a title for a blog post based on the content'''
+
+        system = (
+            "You are an expert SEO copywriter specializing in FinTech content. "
+            "You excel at creating engaging, well-researched articles that rank highly in search engines. "
+            "Your writing style combines technical accuracy with clear explanations for both beginners and experts. "
+            "You follow modern SEO best practices, including proper heading hierarchy, optimal keyword placement, "
+            "and reader-friendly formatting with short paragraphs and bullet points."
+        )
+
+        prompt = (
+            f"Generate a SEO-optimized, attention-grabbing title with H1 heading for the following blog post with the main keyword '{keyword}':\n\n"
+            f"{blog_text}"
+            f"The title should be concise, engaging, and include the main keyword '{keyword}' to attract readers and improve search engine visibility."
+            f"Ensure the title is between 50-60 characters for optimal display in search results."
+            f"Remember to maintain a professional yet engaging tone throughout the title."
+            f"Ensure that it is formatted correctly with respect to proper heading hierarchy (H1). It must be introduced by 'Title:' and end with a period."
+        )
+
+        response = openai.ChatCompletion.create(
+            model=self.model_name,
+            messages=[{"role": "system", "content": system},
+                      {"role": "user", "content": prompt}],
+            max_tokens=max_tokens,
+            temperature=temperature
+        )
+
+        # Extract the message from the API response
+        generated_title = response["choices"][0]["message"]["content"]
+        return generated_title
+
+    def GeneratePostMetaDescription(self, blog_text: str, blog_title: str, keyword: str, max_tokens = 160, temperature = 0.5) -> str:
+        '''Generates a meta description for a blog post based on the content'''
+
+        system = (
+            "You are an expert SEO copywriter specializing in FinTech content. "
+            "You excel at creating engaging, well-researched articles that rank highly in search engines. "
+            "Your writing style combines technical accuracy with clear explanations for both beginners and experts. "
+            "You follow modern SEO best practices, including proper heading hierarchy, optimal keyword placement, "
+            "and reader-friendly formatting with short paragraphs and bullet points."
+        )
+
+        prompt = (
+            f"Generate a SEO-optimized, compelling meta description (150-160 characters) for the following blog post with title '{blog_title}' and main keyword '{keyword}':\n\n"
+            f"{blog_text}"
+            f"The meta description should be concise, engaging, and include the main keyword '{keyword}' to attract readers and improve search engine visibility."
+            f"Ensure the meta description is between 150-160 characters for optimal display in search results."
+            f"Remember to maintain a professional yet engaging tone throughout the meta description."
+            f"Ensure that it is formatted correctly with respect to proper heading hierarchy. It must be introduced by 'Meta Description:' and end with a period."
+
+        )
+
+        response = openai.ChatCompletion.create(
+            model=self.model_name,
+            messages=[{"role": "system", "content": system},
+                      {"role": "user", "content": prompt}],
+            max_tokens=max_tokens,
+            temperature=temperature
+        )
+        
+        # Extract the message from the API response
+        generated_description = response["choices"][0]["message"]["content"]
+        return generated_description
+
+
+
+
+class OaiSeoSpecialist:
+    def __init__(self, model_name = "gpt-3.5-turbo"):
+        self.model_name = model_name
+        _SetOaiKey()
+
+    def FixBlogPost(self, blog_text: str, instructions: str, max_tokens = 700, temperature = 0.4) -> str:
+        '''Fixes a blog post based on the given instructions'''
+    
+        system = (
+            "You are an expert SEO copywriter and editor specialized in FinTech content. "
+            "Your role is to enhance blog posts following specific editorial guidelines while maintaining SEO best practices. "
+            "You excel at implementing precise content modifications while preserving the original message and improving readability. "
+            "Focus on maintaining consistent tone, proper keyword density (1-2%), and clear structure with appropriate headings."
+        )
+
+        prompt = (
+            f"Revise the following blog post according to these specific instructions:\n\n"
+            f"INSTRUCTIONS:\n{instructions}\n\n"
+            f"ORIGINAL POST:\n{blog_text}\n\n"
+            f"Please ensure the revised version:\n"
+            f"1. Follows all provided instructions exactly\n"
+            f"2. Does not add anything other than the revised content and does not include the instructions in the revised content."
+            f"3. Does not include things such as 'Revised Content:' or 'Revised Post:' at the beginning of the revised content."
+            f"Again, please ensure that you follow the instructions exactly"
+        )
+
+        response = openai.ChatCompletion.create(
+            model=self.model_name,
+            messages=[{"role": "system", "content": system},
+                      {"role": "user", "content": prompt}],
+            max_tokens=max_tokens,
+            temperature=temperature
+        )
+
+        # Extract the message from the API response
+        fixed_text = response["choices"][0]["message"]["content"]
+        return fixed_text
+    
     def ReviewAndImproveSEO(self, blog_text: str, max_tokens=1000, temperature=0.5) -> str:
         '''Reviews a blog post for SEO issues and improves it by fixing such issues.'''
 
         system = (
-            f"You are an expert SEO specialist and copywriter. Your job is to analyze blog posts for SEO effectiveness, "
-            f"detect any issues with keyword density, readability, structure, tone, and engagement, and improve the content accordingly. "
-            f"Ensure the content follows best SEO practices, uses appropriate headings (H2, H3) and short paragraphs, and enhances keyword optimization."
-            f"It is vital for your job that the content is compliant with the latest SEO standards and guidelines."
+            "You are an expert SEO specialist and copywriter. Your job is to analyze blog posts for SEO effectiveness, "
+            "detect any issues with keyword density, readability, structure, tone, and engagement, and improve the content accordingly. "
+            "Ensure the content follows best SEO practices, uses appropriate headings (H2, H3) and short paragraphs, and enhances keyword optimization."
+            "It is vital for your job that the content is compliant with the latest SEO standards and guidelines."
         )
 
         prompt = (
@@ -138,28 +261,17 @@ class OaiContentGenerator:
         improved_text = response["choices"][0]["message"]["content"]
         return improved_text
     
-    def FixBlogPost(self, blog_text: str, instructions: str, max_tokens = 700, temperature = 0.5) -> str:
-        '''Fixes a blog post based on the given instructions'''
-        system = (
-            f"You are a helpful SEO copywriter whose responsability is to fix problems in blog posts written by other writers at your company."
-            f"You write well-structured, SEO-friendly articles. "
-            f"Include headings (H2, H3) and short paragraphs."
-        )
-
-        prompt = (
-            f"Fix the following blog post by following the instructions below: \n\n"
-            f"Instructions: {instructions}\n\n"
-            f"Blog Post:\n{blog_text}"
-        )
-
-        response = openai.ChatCompletion.create(
-            model=self.model_name,
-            messages=[{"role": "system", "content": system},
-                      {"role": "user", "content": prompt}],
-            max_tokens=max_tokens,
-            temperature=temperature
-        )
-
-        # Extract the message from the API response
-        fixed_text = response["choices"][0]["message"]["content"]
-        return fixed_text
+'''prompt = (
+            f"Write a comprehensive blog post about '{keyword}' for a FinTech audience. The post should include:\n"
+            f"1. An attention-grabbing title with the main keyword\n"
+            f"2. A compelling meta description (150-160 characters)\n"
+            f"3. An engaging introduction that hooks the reader\n"
+            f"4. 3-5 main sections with H2 headings\n"
+            f"5. Relevant subsections with H3 headings where appropriate\n"
+            f"6. A clear conclusion summarizing key points\n"
+            f"7. A practical bullet list of actionable takeaways\n"
+            f"8. A strong call-to-action\n\n"
+            f"Maintain natural keyword density (1-2%), use transition words for flow, "
+            f"and keep paragraphs under 3-4 sentences for readability. "
+            f"Balance professional expertise with an approachable, conversational tone."
+        )'''
