@@ -13,7 +13,7 @@ def main(topic: str, input_keywords: list = None):
     if input_keywords is None:
         
         generator = OaiContentGenerator(model_name=model)
-        keywords = ["Innovative payments", "payment solutions", "digital payments", "payment technology", "payment innovation"]
+        #keywords = ["Innovative payments", "payment solutions", "digital payments", "payment technology", "payment innovation"]
 
         ## AI Keywords Generation from scratch
         ai_keywords1 = generator.GenerateKeywords(topic=topic)
@@ -55,6 +55,7 @@ def main(topic: str, input_keywords: list = None):
     else:
         final_keywords = input_keywords
 
+
     #######################################################################################################################
 
     # 2. Content Generation
@@ -69,6 +70,7 @@ def main(topic: str, input_keywords: list = None):
         generated_posts.append(post)
         generated_titles.append(title)
         generated_metadescriptions.append(metadescription)
+
 
     #######################################################################################################################
 
@@ -87,6 +89,10 @@ def main(topic: str, input_keywords: list = None):
         improved_post = fixer.FixBlogPost(post, corrections)
         seo_optimized_posts.append(improved_post)
 
+
+    #######################################################################################################################
+
+    # 4. Save the generated blog posts to CSV and Excel and return them
 
     ## Warn if no blog posts were generated successfully
     if not seo_optimized_posts:
