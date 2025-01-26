@@ -94,8 +94,8 @@ def main(topic: str, input_keywords: list = None):
         'keyword': final_keywords
     })
     try:
-        df.to_csv('./automated_blog_posts.csv', index=False, sep=';')
-        df.to_excel('./automated_blog_posts.xlsx', index=False, engine='openpyxl')
+        df.to_csv('./outputs/automated_blog_posts.csv', index=False, sep=';')
+        df.to_excel('./outputs/automated_blog_posts.xlsx', index=False, engine='openpyxl')
         print("Files saved successfully.")
     except PermissionError:
         print("Error: Permission denied. Please close the files if they are open.")
@@ -104,7 +104,7 @@ def main(topic: str, input_keywords: list = None):
 
     ## Save the posts to a Word document keeping markdown formatting
     for i, post in enumerate(seo_optimized_posts):
-        with open(f'./blog_post_{i}.md', 'w', encoding='utf-8') as f:
+        with open(f'./outputs/blog_post_{i}.md', 'w', encoding='utf-8') as f:
             f.write(f"{seo_optimized_titles[i]}\n\n")
             f.write(f"{seo_optimized_metadescriptions[i]}\n\n")
             f.write(post)
