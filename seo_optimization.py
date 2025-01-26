@@ -1,7 +1,15 @@
+'''Module with the classes for SEO analysis and optimization of blog posts, titles, and meta descriptions.'''
+
+# Importing from this application's modules
+from oai_content_generation import OaiSeoSpecialist
+
+# Importing from external libraries
+from textblob import TextBlob
+from concurrent.futures import ThreadPoolExecutor
 import re
 import textstat
 import difflib
-from textblob import TextBlob
+
 
 class SEOAnalyzer:
     def __init__(self):
@@ -69,13 +77,28 @@ class SEOAnalyzer:
             return f"Content Duplication Check: Content is too similar to existing content (similarity ratio: {max_similarity}). Task: Revise the content to make it more original.\n"
         return "Content Duplication Check: Content is unique. No changes needed.\n"
 
-    def check_keyword_density(self, content, keyword):
-        keyword_count = content.lower().split().count(keyword.lower())
-        total_words = len(content.split())
-        keyword_density = (keyword_count / total_words) * 100
-        if keyword_density > 2:
-            return f"Keyword Density Check: Keyword density for '{keyword}' is {keyword_density:.2f}%. Task: Reduce keyword usage to avoid keyword stuffing.\n"
-        return f"Keyword Density Check: Keyword density for '{keyword}' is {keyword_density:.2f}%. No changes needed.\n"
+    def check_keyword_density(self, content, keywords):
+        output = ""
+
+        for i,keyword in enumerate(keywords):
+            words = re.findall(r'\b' + re.escape(keyword) + r'\b', content.lower())
+            total_words = len(content.split())
+            keyword_density = (len(words) / total_words) * 100
+            if i == 0:
+                if keyword_density > 2:
+                    output += f"Keyword Density Check: Keyword density for '{keyword}' is {keyword_density:.2f}%. Task: Reduce keyword usage to avoid keyword stuffing.\n"
+                elif keyword_density < 1:
+                    output += f"Keyword Density Check: Keyword density for '{keyword}' is {keyword_density:.2f}%. Task: Increase keyword usage for better optimization.\n"
+                else:
+                    output += f"Keyword Density Check: Keyword density for '{keyword}' is {keyword_density:.2f}%. No changes needed.\n"    
+            else:
+                if keyword_density > 4:
+                    output += f"Keyword Density Check: Keyword density for '{keyword}' is {keyword_density:.2f}%. Task: Reduce keyword usage to avoid keyword stuffing.\n"
+                elif keyword_density < 0.5:
+                    output += f"Keyword Density Check: Keyword density for '{keyword}' is {keyword_density:.2f}%. Task: Increase keyword usage for better optimization.\n"
+                else:
+                    output += f"Keyword Density Check: Keyword density for '{keyword}' is {keyword_density:.2f}%. No changes needed.\n"
+        return output
     
     def check_paragraphs_and_subheadings(self, content):
         paragraphs = content.split('\n\n')
@@ -99,12 +122,10 @@ class SEOAnalyzer:
             return "Heading Structure Check: No headings found. Task: Add headings to break up the content into sections.\n"
         return "Heading Structure Check: Proper heading structure. No changes needed.\n"
     
-    def generate_report(self, content, target_keywords, title, meta_description, existing_contents):
+    def generate_report_post(self, content, target_keywords, existing_contents):
         final_report = ""
         final_report += self.check_keywords(content, target_keywords)
         final_report += self.check_content_length(content)
-        final_report += self.check_title_length(title)
-        final_report += self.check_meta_description(meta_description)
         final_report += self.check_readability(content)
         final_report += self.check_sentence_length(content)
         final_report += self.check_content_duplication(content, existing_contents)
@@ -112,3 +133,65 @@ class SEOAnalyzer:
         final_report += self.check_paragraphs_and_subheadings(content)
         final_report += self.check_sentiment(content)
         return final_report
+    
+    def generate_report_title(self, title, target_keywords, existing_contents):
+        final_report = ""
+        final_report += self.check_title_length(title)
+        final_report += self.check_keywords(title, target_keywords)
+        return final_report
+    
+    def generate_report_meta_description(self, meta_description, target_keywords, existing_contents):
+        final_report = ""
+        final_report += self.check_meta_description(meta_description)
+        final_report += self.check_keywords(meta_description, target_keywords)
+        return final_report
+    
+class SEOFixer:
+    '''Class to fix SEO issues in blog posts, titles, and meta descriptions.'''
+    def __init__(self):
+        pass
+    
+    def fixSEO(self, seo_model: str, generated_posts: list[str], generated_titles: list[str], generated_metadescriptions: list[str], final_keywords: list[list[str]]) -> tuple[list[str], list[str], list[str]]:
+        '''Analyze and improve each post for SEO using parallel processing'''
+        analyzer = SEOAnalyzer()
+        fixer = OaiSeoSpecialist(model_name=seo_model)
+        seo_optimized_posts = []
+        seo_optimized_titles = []
+        seo_optimized_metadescriptions = []
+
+
+        def process(i, post):
+            existing_posts = generated_posts[:i] + generated_posts[i+1:]
+            existing_titles = generated_titles[:i] + generated_titles[i+1:]
+            existing_metadescriptions = generated_metadescriptions[:i] + generated_metadescriptions[i+1:]
+
+            corrections_post = analyzer.generate_report_post(
+                content=post,
+                target_keywords=final_keywords[i],
+                existing_contents=existing_posts
+            )
+            corrections_title = analyzer.generate_report_title(
+                title=generated_titles[i],
+                target_keywords=final_keywords[i],
+                existing_contents=existing_titles
+            )
+            corrections_metadescription = analyzer.generate_report_meta_description(
+                meta_description=generated_metadescriptions[i],
+                target_keywords=final_keywords[i],
+                existing_contents=existing_metadescriptions
+            )
+
+            improved_post = fixer.FixBlogPost(post, corrections_post)
+            improved_title = fixer.FixBlogTitle(generated_titles[i], corrections_title)
+            improved_metadescription = fixer.FixMetaDescription(generated_metadescriptions[i], corrections_metadescription)
+            return improved_post, improved_title, improved_metadescription
+
+        with ThreadPoolExecutor() as executor:
+            results = executor.map(process, range(len(generated_posts)), generated_posts)
+
+        for improved_post, improved_title, improved_metadescription in results:
+            seo_optimized_posts.append(improved_post)
+            seo_optimized_titles.append(improved_title)
+            seo_optimized_metadescriptions.append(improved_metadescription)
+
+        return seo_optimized_posts, seo_optimized_titles, seo_optimized_metadescriptions

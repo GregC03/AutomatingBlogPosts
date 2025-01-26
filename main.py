@@ -1,110 +1,98 @@
-from oai_content_generation import OaiContentGenerator, OaiSeoSpecialist
-from keyword_extraction import GoogleScraper
-from seo_optimization import SEOAnalyzer
+'''The main script to generate SEO-optimized blog posts on a given topic using AI and web scraping,
+add content linking, and publish to a CMS like WordPress.'''
 
-import random
+# Importing from this application's modules
+from oai_content_generation import ContentGeneration
+from keyword_extraction import KeywordGeneration
+from seo_optimization import SEOFixer
+from cms_integration import CMSIntegration
+#from internal_linking import InternalLinking
+
+# Importing from external libraries
 import pandas as pd
-import openpyxl
+import os
+from dotenv import load_dotenv
 
+# Load environment variables
+load_dotenv()
+
+# Main function to generate and publish SEO-optimized blog posts on a given topic
 def main(topic: str, input_keywords: list = None):
-    ''' Main function to generate SEO-optimized blog posts on a given topic'''
-    model = "gpt-4o-mini"
-    # 1a. If input_keywords are not provided, generate keywords using AI and web scraping
+    """Main function to generate SEO-optimized blog posts on a given topic.
+    
+    Args:
+        topic (str): The main topic for blog post generation
+        input_keywords (list, optional): List of keywords to use. If None, generates keywords automatically
+    
+    Returns:
+        list: List of SEO-optimized blog posts
+    """
+    generation_model = os.getenv("generation_model", "gpt-4o-mini")  # Model name for AI content generation
+
+
+    # PHASE 1: KEYWORD GENERATION
+    ## Either use provided keywords or generate new ones using AI and web scraping
     if input_keywords is None:
-        
-        generator = OaiContentGenerator(model_name=model)
-        #keywords = ["Innovative payments", "payment solutions", "digital payments", "payment technology", "payment innovation"]
-
-        ## AI Keywords Generation from scratch
-        ai_keywords1 = generator.GenerateKeywords(topic=topic)
-
-        ### Validate and clean the keyword list
-        if not ai_keywords1 or not isinstance(ai_keywords1, list):
-            print("Error: No keywords generated.")
-            ai_keywords1 = []
-
-        ### Clean spaces
-        ai_keywords1 = [kw.strip() for kw in ai_keywords1]
-
-        ## Keyword extraction from web-scraping
-        scraper = GoogleScraper()
-        
-        ### Get common  keywords related to a topic from Google search results
-        keywords = scraper.get_keywords_from_google(topic, num_results=50, num_keywords=20)
-
-        ### Pass the extracted_keywords to the AI model
-        ai_keywords2 = generator.GenerateKeywordsFromSearchResults(search_results=keywords, topic=topic)
-
-        ### Validate and clean the keyword list
-        if not ai_keywords1 or not isinstance(ai_keywords1, list):
-            print("Error: No keywords generated.")
-            ai_keywords1 = []
-
-        ### Clean spaces
-        ai_keywords2 = [kw.strip() for kw in ai_keywords2]
-
-        ## Combine the keywords
-        final_keywords = list(set(ai_keywords1 + ai_keywords2))
-        random.shuffle(final_keywords)
-
-        #if len(final_keywords) > 700//30:
-        #    final_keywords = final_keywords[:700//30]
-        final_keywords = final_keywords[:4]
-
-    # 1b. If input_keywords are provided, use them directly
+        keyword_generator = KeywordGeneration() # Class to generate keywords using AI and Google search results
+        final_keywords, _, _ = keyword_generator.generate_keywords(
+                                                    topic=topic,
+                                                    generation_model=generation_model,
+                                                    num_keywords = 4,
+                                                    num_google_keywords=20,
+                                                    num_google_results=50
+                                                ) # Generate a list of (up to num_keywords) lists of semantically close keywords related to the topic using AI and Google search results
+    
+        ## Check if keywords were generated successfully
+        if not final_keywords:
+            raise ValueError("No keywords were generated successfully.")
+    
     else:
         final_keywords = input_keywords
 
 
-    #######################################################################################################################
+    # PHASE 2: CONTENT GENERATION
+    ## Generate blog posts, titles, and meta descriptions for each keyword
+    contentgen = ContentGeneration() # Class to generate blog posts, titles, and meta descriptions
+    generated_posts, generated_titles, generated_metadescriptions = contentgen.Posts_Titles_Metadescriptions_Generator(
+                                                                                                            generation_model,
+                                                                                                            final_keywords
+                                                                                                        ) # Generate blog posts, titles, and meta descriptions for each list of keywords
+    
+    ## Check if blog posts were generated successfully
+    if not generated_posts:
+        raise ValueError("No blog posts were generated successfully.")
 
-    # 2. Content Generation
-    generated_posts = []
-    generated_titles = []
-    generated_metadescriptions = []
-    for keyword in final_keywords:
-        post = generator.GenerateBlogPost(keyword=keyword)
-        title = generator.GeneratePostTitle(blog_text=post, keyword=keyword)
-        metadescription = generator.GeneratePostMetaDescription(blog_text=post, blog_title=title, keyword=keyword)
-        post = title + "\n" + metadescription + "\n" + post
-        generated_posts.append(post)
-        generated_titles.append(title)
-        generated_metadescriptions.append(metadescription)
-
-
-    #######################################################################################################################
-
-    # 3. SEO Optimization
-
-    ## Initialize the SEO Analyzer and SEO Specialist
-    analyzer = SEOAnalyzer()
-    fixer = OaiSeoSpecialist(model_name=model)
-
-    ## Optimize the generated blog posts
-    seo_optimized_posts = []
-
-    for i,post in enumerate(generated_posts):
-        existing_contents = generated_posts[:i]+generated_posts[i+1:]
-        corrections = analyzer.generate_report(content=post, target_keywords=final_keywords[i], title=generated_titles[i], meta_description=generated_metadescriptions[i], existing_contents=existing_contents)
-        improved_post = fixer.FixBlogPost(post, corrections)
-        seo_optimized_posts.append(improved_post)
+    # PHASE 3: SEO OPTIMIZATION
+    ## Analyze and improve each post for SEO
+    seo_model = os.getenv("seo_model", "gpt-4o-mini") # Name of the AI Model for content generation
+    
+    ## Fix SEO issues in blog posts
+    fixer = SEOFixer() # Class to fix SEO issues in blog posts
+    seo_optimized_posts, seo_optimized_titles, seo_optimized_metadescriptions = fixer.fixSEO(
+                                                                                        seo_model=seo_model,
+                                                                                        generated_posts=generated_posts,
+                                                                                        generated_titles=generated_titles,
+                                                                                        generated_metadescriptions=generated_metadescriptions,
+                                                                                        final_keywords=final_keywords
+                                                                                    ) # Finds and fixes SEO issues in blog posts
 
 
-    #######################################################################################################################
-
-    # 4. Save the generated blog posts to CSV and Excel and return them
-
-    ## Warn if no blog posts were generated successfully
+    ## Check if seo optimized blog posts were generated successfully
     if not seo_optimized_posts:
-        print("No blog posts were generated successfully.")
+        raise ValueError("No blog posts were generated successfully.")
 
-    # Create a DataFrame with the blog posts
+    # PHASE 4: INTERNAL LINKING STRATEGY
+    ## Generate internal links for SEO optimization
+    ## TODO: Implement internal linking strategy
+
+    # PHASE 5: SAVE RESULTS LOCALLY
+    ## Save the generated posts to CSV and Excel files
     df = pd.DataFrame({
+        'title': seo_optimized_titles,
+        'meta_description': seo_optimized_metadescriptions,
         'blog_post': seo_optimized_posts,
         'keyword': final_keywords
     })
-
-    # Save to CSV and Excel
     try:
         df.to_csv('./automated_blog_posts.csv', index=False, sep=';')
         df.to_excel('./automated_blog_posts.xlsx', index=False, engine='openpyxl')
@@ -114,7 +102,39 @@ def main(topic: str, input_keywords: list = None):
     except Exception as e:
         print(f"Error saving files: {str(e)}")
 
-    return seo_optimized_posts
+    ## Save the posts to a Word document keeping markdown formatting
+    for i, post in enumerate(seo_optimized_posts):
+        with open(f'./blog_post_{i}.md', 'w', encoding='utf-8') as f:
+            f.write(f"{seo_optimized_titles[i]}\n\n")
+            f.write(f"{seo_optimized_metadescriptions[i]}\n\n")
+            f.write(post)
+    print("Markdown files saved successfully.")
+
+    # PHASE 6: CMS INTEGRATION
+    ## Publish blog posts to WordPress CMS
+
+    ## Initialize CMS integration
+    cms = CMSIntegration() # Class to integrate with a Content Management System (CMS) like WordPress
+
+    ## Get CMS settings from environment variables
+    pubtlish_to_cms = os.getenv("publish_to_cms", "False").lower() # Set to True to publish to CMS
+    cms_type = os.getenv("cms_type", "wordpress").lower() # Type of CMS to publish to
+
+    ## Set to True to publish as drafts
+    draft = False
+
+    ## Publish to CMS if enabled
+    if pubtlish_to_cms == "true":
+        cms.cms_publication(
+            seo_optimized_posts=seo_optimized_posts,
+            seo_optimized_titles=seo_optimized_titles,
+            seo_optimized_metadescriptions=seo_optimized_metadescriptions,
+            final_keywords=final_keywords,
+            cms_type=cms_type,
+            draft=draft
+        )
+
+    return seo_optimized_titles, seo_optimized_metadescriptions,seo_optimized_posts, final_keywords
 
 if __name__ == "__main__":
-   main(topic = "Innovative payments solutions")
+   main(topic = "bloackchain")
