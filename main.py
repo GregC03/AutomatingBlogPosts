@@ -87,8 +87,8 @@ def main(topic: str, input_keywords: list = None):
     ## Generate internal links for SEO optimization
     ## Very Simple implementation, MUST BE IMPROVED!
     internal_links = []
-    intenral_linking = os.getenv("intenral_linking", "True") # Set env variable to True to generate internal links
-    if intenral_linking == "True":
+    internal_linking = os.getenv("internal_linking", "True") # Set env variable to True to generate internal links
+    if internal_linking == "True":
         linker = InternalLinking()
         internal_links = linker.generate_internal_links(
                                                 posts=seo_optimized_posts,
