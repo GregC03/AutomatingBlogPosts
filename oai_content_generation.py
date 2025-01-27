@@ -168,7 +168,7 @@ class OaiContentGenerator:
             f"The title should be concise, engaging, and include the main keyword '{keyword}' to attract readers and improve search engine visibility."
             f"Ensure the title is between 50-60 characters for optimal display in search results."
             f"Remember to maintain a professional yet engaging tone throughout the title."
-            f"Ensure that it is formatted correctly with respect to proper heading hierarchy (H1). It must not contain any indications such as 'Title:' or similar."
+            f"Ensure that it is formatted correctly with respect to proper heading hierarchy (H1), e.g. start with ONE '#'. It must not contain any indications such as 'Title:' or similar."
         )
 
         response = openai.ChatCompletion.create(
@@ -200,8 +200,7 @@ class OaiContentGenerator:
             f"The meta description should be concise, engaging, and include the main keyword '{keyword}' to attract readers and improve search engine visibility."
             f"Ensure the meta description is between 150-160 characters for optimal display in search results."
             f"Remember to maintain a professional yet engaging tone throughout the meta description."
-            f"Ensure that it is formatted correctly with respect to proper heading hierarchy. It must be introduced by 'Meta Description:' and end with a period."
-
+            f"Ensure that it is formatted correctly with respect to proper heading hierarchy (H1). It must not contain any indications such as 'Meta Description:' or similar."
         )
 
         response = openai.ChatCompletion.create(
@@ -302,8 +301,9 @@ class OaiSeoSpecialist:
             f"1. Follows all provided instructions\n"
             f"2. Maintains the original message and tone\n"
             f"3. Enhances readability and SEO optimization\n"
-            f"4. Does not include the instructions in the revised content."
-            f"5. Does not include things such as 'Revised Title:' at the beginning of the revised content."
+            f"4. Still ensures that the title is formatted correctly with respect to proper heading hierarchy (H1), e.g. start with ONE '#'."
+            f"5. Does not include the instructions in the revised content."
+            f"6. Does not include things such as 'Revised Title:' at the beginning of the revised content."
             f"Again, you must ensure that you follow the instructions provided at the beginning and revise the content accordingly."
         )
 
@@ -336,6 +336,7 @@ class OaiSeoSpecialist:
             f"1. Follows all provided instructions\n"
             f"2. Maintains the original message and tone\n"
             f"3. Enhances readability and SEO optimization\n"
+            f"4. Still ensures that the meta description is formatted correctly with respect to proper heading hierarchy."
             f"4. Does not include the instructions in the revised content."
             f"5. Does not include things such as 'Revised Meta Description:' at the beginning of the revised content."
             f"Again, you must ensure that you follow the instructions provided at the beginning and revise the content accordingly."

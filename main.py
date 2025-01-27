@@ -6,7 +6,9 @@ from oai_content_generation import ContentGeneration
 from keyword_extraction import KeywordGeneration
 from seo_optimization import SEOFixer
 from cms_integration import CMSIntegration
-#from internal_linking import InternalLinking
+from internal_linking import InternalLinking
+from utils.helpers import save_to_csv, save_to_excel, save_to_markdown
+
 
 # Importing from external libraries
 import pandas as pd
@@ -83,7 +85,18 @@ def main(topic: str, input_keywords: list = None):
 
     # PHASE 4: INTERNAL LINKING STRATEGY
     ## Generate internal links for SEO optimization
-    ## TODO: Implement internal linking strategy
+    ## Very Simple implementation, MUST BE IMPROVED!
+    internal_links = []
+    intenral_linking = os.getenv("intenral_linking", "True") # Set env variable to True to generate internal links
+    if intenral_linking == "True":
+        linker = InternalLinking()
+        internal_links = linker.generate_internal_links(
+                                                posts=seo_optimized_posts,
+                                                titles=seo_optimized_titles,
+                                                metadescriptions=seo_optimized_metadescriptions,
+                                                keywords=final_keywords,
+                                                previous_posts_path= "./data/previous_blog_posts.csv"
+                                            ) # Generate internal links for SEO optimization
 
     # PHASE 5: SAVE RESULTS LOCALLY
     ## Save the generated posts to CSV and Excel files
@@ -91,9 +104,20 @@ def main(topic: str, input_keywords: list = None):
         'title': seo_optimized_titles,
         'meta_description': seo_optimized_metadescriptions,
         'blog_post': seo_optimized_posts,
-        'keyword': final_keywords
+        'keyword': final_keywords,
+        'internal_links': internal_links
     })
-    try:
+
+    ## Save the posts to CSV and Excel files
+    save_to_csv(df, './outputs/automated_blog_posts.csv')
+    save_to_excel(df, './outputs/automated_blog_posts.xlsx')
+
+    ## Save the posts in markdown format
+    save_to_markdown(seo_optimized_posts, seo_optimized_titles, seo_optimized_metadescriptions, final_keywords, internal_links)
+    
+
+
+    '''try:
         df.to_csv('./outputs/automated_blog_posts.csv', index=False, sep=';')
         df.to_excel('./outputs/automated_blog_posts.xlsx', index=False, engine='openpyxl')
         print("Files saved successfully.")
@@ -103,12 +127,22 @@ def main(topic: str, input_keywords: list = None):
         print(f"Error saving files: {str(e)}")
 
     ## Save the posts to a Word document keeping markdown formatting
-    for i, post in enumerate(seo_optimized_posts):
-        with open(f'./outputs/blog_post_{i}.md', 'w', encoding='utf-8') as f:
-            f.write(f"{seo_optimized_titles[i]}\n\n")
-            f.write(f"{seo_optimized_metadescriptions[i]}\n\n")
-            f.write(post)
-    print("Markdown files saved successfully.")
+    try:
+        for i, post in enumerate(seo_optimized_posts):
+            with open(f'./outputs/blog_post_{i}.md', 'w', encoding='utf-8') as f:
+                f.write(f"{seo_optimized_titles[i]}\n\n")
+                f.write(f"{seo_optimized_metadescriptions[i]}\n\n")
+                f.write(post)
+                f.write("\n\n")
+                f.write("Keywords: " + ", ".join(final_keywords[i]))
+                f.write("\n\n")
+                f.write("Internal Links: " + ", ".join(internal_links[i]))
+        print("Markdown files saved successfully.")
+    except PermissionError:
+        print("Error: Permission denied. Please close the files if they are open.")
+    except Exception as e:
+        print(f"Error saving markdown files: {str(e)}")'''
+
 
     # PHASE 6: CMS INTEGRATION
     ## Publish blog posts to WordPress CMS
@@ -119,9 +153,8 @@ def main(topic: str, input_keywords: list = None):
     ## Get CMS settings from environment variables
     pubtlish_to_cms = os.getenv("publish_to_cms", "False").lower() # Set to True to publish to CMS
     cms_type = os.getenv("cms_type", "wordpress").lower() # Type of CMS to publish to
-
     ## Set to True to publish as drafts
-    draft = False
+    draft = ("true" == os.getenv("draft", "True").lower()) # Set to True to publish as drafts
 
     ## Publish to CMS if enabled
     if pubtlish_to_cms == "true":
