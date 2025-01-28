@@ -64,6 +64,7 @@ def main(topic: str, input_keywords: list = None):
     if not generated_posts:
         raise ValueError("No blog posts were generated successfully.")
 
+
     # PHASE 3: SEO OPTIMIZATION
     ## Analyze and improve each post for SEO
     seo_model = os.getenv("seo_model", "gpt-4o-mini") # Name of the AI Model for content generation
@@ -83,6 +84,7 @@ def main(topic: str, input_keywords: list = None):
     if not seo_optimized_posts:
         raise ValueError("No blog posts were generated successfully.")
 
+
     # PHASE 4: INTERNAL LINKING STRATEGY
     ## Generate internal links for SEO optimization
     ## Very Simple implementation, MUST BE IMPROVED!
@@ -97,6 +99,7 @@ def main(topic: str, input_keywords: list = None):
                                                 keywords=final_keywords,
                                                 previous_posts_path= "./data/previous_blog_posts.csv"
                                             ) # Generate internal links for SEO optimization
+
 
     # PHASE 5: SAVE RESULTS LOCALLY
     ## Save the generated posts to CSV and Excel files
@@ -114,34 +117,6 @@ def main(topic: str, input_keywords: list = None):
 
     ## Save the posts in markdown format
     save_to_markdown(seo_optimized_posts, seo_optimized_titles, seo_optimized_metadescriptions, final_keywords, internal_links)
-    
-
-
-    '''try:
-        df.to_csv('./outputs/automated_blog_posts.csv', index=False, sep=';')
-        df.to_excel('./outputs/automated_blog_posts.xlsx', index=False, engine='openpyxl')
-        print("Files saved successfully.")
-    except PermissionError:
-        print("Error: Permission denied. Please close the files if they are open.")
-    except Exception as e:
-        print(f"Error saving files: {str(e)}")
-
-    ## Save the posts to a Word document keeping markdown formatting
-    try:
-        for i, post in enumerate(seo_optimized_posts):
-            with open(f'./outputs/blog_post_{i}.md', 'w', encoding='utf-8') as f:
-                f.write(f"{seo_optimized_titles[i]}\n\n")
-                f.write(f"{seo_optimized_metadescriptions[i]}\n\n")
-                f.write(post)
-                f.write("\n\n")
-                f.write("Keywords: " + ", ".join(final_keywords[i]))
-                f.write("\n\n")
-                f.write("Internal Links: " + ", ".join(internal_links[i]))
-        print("Markdown files saved successfully.")
-    except PermissionError:
-        print("Error: Permission denied. Please close the files if they are open.")
-    except Exception as e:
-        print(f"Error saving markdown files: {str(e)}")'''
 
 
     # PHASE 6: CMS INTEGRATION
