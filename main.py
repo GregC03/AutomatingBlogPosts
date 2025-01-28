@@ -88,7 +88,7 @@ def main(topic: str, input_keywords: list = None):
     # PHASE 4: INTERNAL LINKING STRATEGY
     ## Generate internal links for SEO optimization
     ## Very Simple implementation, MUST BE IMPROVED!
-    internal_links = []
+    internal_links = [[] for _ in range(len(seo_optimized_posts))] # Initialize internal links to empty lists
     internal_linking = os.getenv("internal_linking", "True") # Set env variable to True to generate internal links
     if internal_linking == "True":
         linker = InternalLinking()
